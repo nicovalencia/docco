@@ -9,7 +9,7 @@
 #
 #     docco src/*.coffee
 #
-# ...will generate an HTML documentation page for each of the named source files, 
+# ...will generate an HTML documentation page for each of the named source files,
 # with a menu linking to the other pages, saving it into a `docs` folder.
 #
 # The [source for Docco](http://github.com/jashkenas/docco) is available on GitHub,
@@ -24,27 +24,27 @@
 #
 #### Partners in Crime:
 #
-# * If **Node.js** doesn't run on your platform, or you'd prefer a more 
-# convenient package, get [Ryan Tomayko](http://github.com/rtomayko)'s 
-# [Rocco](http://rtomayko.github.com/rocco/rocco.html), the Ruby port that's 
-# available as a gem. 
-# 
+# * If **Node.js** doesn't run on your platform, or you'd prefer a more
+# convenient package, get [Ryan Tomayko](http://github.com/rtomayko)'s
+# [Rocco](http://rtomayko.github.com/rocco/rocco.html), the Ruby port that's
+# available as a gem.
+#
 # * If you're writing shell scripts, try
 # [Shocco](http://rtomayko.github.com/shocco/), a port for the **POSIX shell**,
 # also by Mr. Tomayko.
-# 
-# * If Python's more your speed, take a look at 
-# [Nick Fitzgerald](http://github.com/fitzgen)'s [Pycco](http://fitzgen.github.com/pycco/). 
 #
-# * For **Clojure** fans, [Fogus](http://blog.fogus.me/)'s 
-# [Marginalia](http://fogus.me/fun/marginalia/) is a bit of a departure from 
+# * If Python's more your speed, take a look at
+# [Nick Fitzgerald](http://github.com/fitzgen)'s [Pycco](http://fitzgen.github.com/pycco/).
+#
+# * For **Clojure** fans, [Fogus](http://blog.fogus.me/)'s
+# [Marginalia](http://fogus.me/fun/marginalia/) is a bit of a departure from
 # "quick-and-dirty", but it'll get the job done.
 #
-# * **Lua** enthusiasts can get their fix with 
+# * **Lua** enthusiasts can get their fix with
 # [Robert Gieseke](https://github.com/rgieseke)'s [Locco](http://rgieseke.github.com/locco/).
-# 
+#
 # * And if you happen to be a **.NET**
-# aficionado, check out [Don Wilson](https://github.com/dontangg)'s 
+# aficionado, check out [Don Wilson](https://github.com/dontangg)'s
 # [Nocco](http://dontangg.github.com/nocco/).
 version = '0.3.1'
 
@@ -104,17 +104,17 @@ highlight = (source, sections, callback) ->
   language = get_language source
   pygments = spawn 'pygmentize', ['-l', language.name, '-f', 'html', '-O', 'encoding=utf-8']
   output   = ''
-  
+
   pygments.stderr.addListener 'data',  (error)  ->
     console.error error.toString() if error
-    
+
   pygments.stdin.addListener 'error',  (error)  ->
     console.error "Could not use Pygments to highlight the source."
     process.exit 1
-    
+
   pygments.stdout.addListener 'data', (result) ->
     output += result if result
-    
+
   pygments.addListener 'exit', ->
     output = output.replace(highlight_start, '').replace(highlight_end, '')
     fragments = output.split language.divider_html
@@ -122,18 +122,18 @@ highlight = (source, sections, callback) ->
       section.code_html = highlight_start + fragments[i] + highlight_end
       section.docs_html = showdown.makeHtml section.docs_text
     callback()
-    
+
   if pygments.stdin.writable
     pygments.stdin.write((section.code_text for section in sections).join(language.divider_text))
     pygments.stdin.end()
-  
+
 # Once all of the code is finished highlighting, we can generate the HTML file
 # and write out the documentation. Pass the completed sections into the template
 # found in `resources/docco.jst`
 generate_html = (source, sections) ->
   title       = path.basename source
   dest        = destination source
-  
+
   # If using `--structured-output`: create a relative destination function
   # to fix paths used in the "Jump to..." menu. The new function creates
   # a string with a `../` for each level of depth in the current source file's
@@ -143,7 +143,7 @@ generate_html = (source, sections) ->
     (path.dirname(dest) + '/').replace(/[^\/]*\//g, '../') + destination source
   else (source) ->
     path.basename destination source
-  
+
   # If using `--structured-output`: we can pass in the sources array *as-is*.
   # Otherwise: we map the sources to just the filenames.
   html        = docco_template

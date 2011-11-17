@@ -24,9 +24,10 @@
 #
 #### Partners in Crime:
 #
-# * If **Node.js** doesn't run on your platform, or you'd prefer a more convenient
-# package, get [Ryan Tomayko](http://github.com/rtomayko)'s 
-# [Rocco](http://rtomayko.github.com/rocco/), the Ruby port that's available as a gem. 
+# * If **Node.js** doesn't run on your platform, or you'd prefer a more 
+# convenient package, get [Ryan Tomayko](http://github.com/rtomayko)'s 
+# [Rocco](http://rtomayko.github.com/rocco/rocco.html), the Ruby port that's 
+# available as a gem. 
 # 
 # * If you're writing shell scripts, try
 # [Shocco](http://rtomayko.github.com/shocco/), a port for the **POSIX shell**,
@@ -55,8 +56,11 @@ generate_documentation = (source, context, callback) ->
   fs.readFile source, "utf-8", (error, code) ->
     throw error if error
     sections = parse source, code
-    highlight source, sections, ->
-      generate_html source, context, sections
+    try
+      highlight source, sections, ->
+        generate_html source, context, sections
+        callback()
+    catch e
       callback()
 
 # Given a string of source code, parse out each comment and the code that
@@ -79,16 +83,19 @@ parse = (source, code) ->
   save = (docs, code) ->
     sections.push docs_text: docs, code_text: code
 
-  for line in lines
-    if line.match(language.comment_matcher) and not line.match(language.comment_filter)
-      if has_code
-        save docs_text, code_text
-        has_code = docs_text = code_text = ''
-      docs_text += line.replace(language.comment_matcher, '') + '\n'
-    else
-      has_code = yes
-      code_text += line + '\n'
-  save docs_text, code_text
+  try
+    for line in lines
+      if line.match(language.comment_matcher) and not line.match(language.comment_filter)
+        if has_code
+          save docs_text, code_text
+          has_code = docs_text = code_text = ''
+        docs_text += line.replace(language.comment_matcher, '') + '\n'
+      else
+        has_code = yes
+        code_text += line + '\n'
+    save docs_text, code_text
+  catch e
+
   sections
 
 # Highlights a single chunk of CoffeeScript code, using **Pygments** over stdio,
@@ -102,10 +109,17 @@ highlight = (source, sections, callback) ->
   language = get_language source
   pygments = spawn 'pygmentize', ['-l', language.name, '-f', 'html', '-O', 'encoding=utf-8']
   output   = ''
+  
   pygments.stderr.addListener 'data',  (error)  ->
-    console.error error if error
+    console.error error.toString() if error
+    
+  pygments.stdin.addListener 'error',  (error)  ->
+    console.error "Could not use Pygments to highlight the source."
+    process.exit 1
+    
   pygments.stdout.addListener 'data', (result) ->
     output += result if result
+    
   pygments.addListener 'exit', ->
     output = output.replace(highlight_start, '').replace(highlight_end, '')
     fragments = output.split language.divider_html
@@ -113,9 +127,11 @@ highlight = (source, sections, callback) ->
       section.code_html = highlight_start + fragments[i] + highlight_end
       section.docs_html = showdown.makeHtml section.docs_text
     callback()
-  pygments.stdin.write((section.code_text for section in sections).join(language.divider_text))
-  pygments.stdin.end()
-
+    
+  if pygments.stdin.writable
+    pygments.stdin.write((section.code_text for section in sections).join(language.divider_text))
+    pygments.stdin.end()
+  
 # Once all of the code is finished highlighting, we can generate the HTML file
 # and write out the documentation. Pass the completed sections into the template
 # found in `resources/docco.jst`
@@ -160,10 +176,10 @@ languages =
     name: 'coffee-script', symbol: '#'
   '.js':
     name: 'javascript', symbol: '//'
-  '.rb':
-    name: 'ruby', symbol: '#'
-  '.py':
-    name: 'python', symbol: '#'
+  # '.rb':
+  #   name: 'ruby', symbol: '#'
+  # '.py':
+  #   name: 'python', symbol: '#'
 
 # Build out the appropriate matchers and delimiters for each language.
 for ext, l of languages
@@ -256,7 +272,7 @@ parse_args = (callback) ->
     throw err if err
 
     # Don't include hidden files, either
-    sources = stdout.split("\n").filter (file) -> file != '' and path.basename(file)[0] != '.'
+    sources = stdout.split("\n").filter (file) -> file != '' and path.basename(file)[0] != '.' and ['.coffee','.js','.js.coffee'].indexOf( path.extname(file) ) isnt -1
 
     console.log "docco: Recursively generating docs underneath #{relative_root}/"
 

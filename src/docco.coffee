@@ -272,7 +272,7 @@ parse_args = (callback) ->
     throw err if err
 
     # Don't include hidden files, either
-    sources = stdout.split("\n").filter (file) -> file != '' and path.basename(file)[0] != '.' and ['.coffee','.js','.js.coffee'].indexOf( path.extname(file) ) isnt -1
+    sources = stdout.split("\n").filter (file) -> file != '' and path.basename(file)[0] != '.' and ['.coffee'].indexOf( path.extname(file) ) isnt -1
 
     console.log "docco: Recursively generating docs underneath #{relative_root}/"
 

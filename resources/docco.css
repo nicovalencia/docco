@@ -34,18 +34,55 @@ h1, h2, h3, h4, h5, h6 {
 
 
 #jump_wrapper {
-  position:absolute;
-  top:0; left:0;
+  opacity: 0;
+  position: fixed;
+  overflow-y: scroll;
+  height: 100%;
+  top:0; left:-200px;
   background-color:#fff;
   border:1px solid #666;
+  border-top: none;
   padding:20px;
+  font-size: 13px;
+  font-family: arial, Helvetica, sans;
+  background: white url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHUlEQVQIHWN49erVfyBgQMaMIA46YEIXAPGJFwQAzc4StvE9qm4AAAAASUVORK5CYII=);
+  -webkit-transition: all 0.3s ease-out;  
+     -moz-transition: all 0.3s ease-out;  
+      -ms-transition: all 0.3s ease-out;  
+       -o-transition: all 0.3s ease-out;  
+          transition: all 0.3s ease-out;
+
 }
 
+#jump_wrapper h3 { margin: 0; }
+#jump_wrapper h3:before {
+  content: '↳';
+  padding-right: 6px;
+}
+
+#jump_wrapper a { text-decoration: none; color: black; }
+#jump_wrapper a:visited { color: #666; }
+#jump_wrapper a:hover { text-decoration: underline; }
 
 
+#jump_wrapper li:before {
+  content: '▪';
+  padding-right: 4px;
+}
 
+#jump_wrapper li {
+  list-style-type:none;
+}
 
+#jump_wrapper ul {
+  margin: 0 0 0 1em;
+  padding:0;
+}
 
+#jump_to:hover #jump_wrapper {
+  left:0px;
+  opacity: 1;
+}
 
 
 
@@ -166,4 +203,7 @@ body .vc { color: #19469D }                     /* Name.Variable.Class */
 body .vg { color: #19469D }                     /* Name.Variable.Global */
 body .vi { color: #19469D }                     /* Name.Variable.Instance */
 body .il { color: #666666 }                     /* Literal.Number.Integer.Long */
+
+
+
 

@@ -138,8 +138,9 @@ highlight = (source, sections, callback) ->
 generate_html = (source, context, sections) ->
   title = path.basename source
   dest  = destination source, context
+  menu_html = buildMenu source, context
   html  = docco_template {
-    title: title, file_path: source, sections: sections, context: context, path: path, relative_base: relative_base
+    title: title, file_path: source, sections: sections, context: context, path: path, relative_base: relative_base, menu_html: menu_html
   }
 
   # Generate the file's base dir as required
@@ -271,8 +272,11 @@ parse_args = (callback) ->
   exec "find #{relative_root} -type f", (err, stdout) ->
     throw err if err
 
+    # add filetypes to look for to this array:
+    supported_filetypes = [ '.coffee' ]
+
     # Don't include hidden files, either
-    sources = stdout.split("\n").filter (file) -> file != '' and path.basename(file)[0] != '.' and ['.coffee'].indexOf( path.extname(file) ) isnt -1
+    sources = stdout.split("\n").filter (file) -> file != '' and path.basename(file)[0] != '.' and supported_filetypes.indexOf( path.extname(file) ) isnt -1
 
     console.log "docco: Recursively generating docs underneath #{relative_root}/"
 
@@ -288,4 +292,44 @@ parse_args (sources, relative_root) ->
     files = sources.slice(0)
     next_file = -> generate_documentation files.shift(), context, next_file if files.length
     next_file()
+
+buildMenu = ( source, context ) ->
+
+  root_path = relative_base(source, context).replace(/[^\/]+/g, '..')
+  html = ""
+  paths = {}
+
+  for source in context.sources
+    base_path = relative_base source, context
+    base_path_array = base_path.split '/'
+
+    setKey = ( obj, path_array, data ) ->
+      if path_array.length is 0 or path_array.length is 1
+        obj.root = [] if !obj.root?
+        obj.root.push data
+      else
+        obj[path_array[0]] = {} if !obj[path_array[0]]?
+        next_object = obj[path_array[0]]
+        path_array.shift()
+        setKey next_object, path_array, data
+
+    setKey paths, base_path_array, path.basename(source)
+
+  buildDir = ( obj, level, base_path ) ->
+    for key, value of obj
+      if (value instanceof Array)
+        # array -> these are files, create links
+        for file_path in obj[key]
+          do ( file_path ) ->
+            file_name = path.basename(file_path, path.extname(file_path))
+            html += "<li><a href=\"#{root_path + base_path + file_name}.html\">#{file_path}</a></li>"
+      else
+        # not array -> these are directories, let's go deeper
+        html += "<div class=\"level#{level}\"><h3>#{key}</h3><ul>"
+        buildDir( obj[key], level++, base_path+key+'/' )
+        html += "</ul></div>"
+
+  buildDir( paths, 0 , '')
+
+  return html
 

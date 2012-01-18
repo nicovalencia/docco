@@ -18,56 +18,7 @@ var root_path = relative_base(file_path, context).replace(/[^\/]+/g, '..');
         <div id="jump_wrapper">
           <div id="jump_page">
 
-            <% var paths = {}; %>
-            <% for (var i=0, l=context.sources.length; i<l; i++) { %>
-              <%
-              var source    = context.sources[i];
-              var base_path = relative_base(source, context);
-              var base_path_array = base_path.split('/');
-              var setKey = function ( obj, path_array, data ) {
-                if ( path_array.length == 0 ) {
-                  if ( typeof obj.root === "undefined" ) { obj.root = []; }
-                  obj.root.push(data);
-                } else if ( path_array.length == 1 ) {
-                  if ( typeof obj.root === "undefined" ) { obj.root = []; }
-                  obj.root.push(data);
-                } else {
-                  if ( typeof obj[path_array[0]] === "undefined" ) { obj[path_array[0]] = {}; }
-                  next_object = obj[path_array[0]];
-                  path_array.shift();
-                  setKey( next_object, path_array, data );
-                }
-              };
-              setKey( paths, base_path_array, path.basename(source) );
-              %>
-            <% } %>
-            <% console.log('\n\n'+JSON.stringify(paths)); %>
-
-            <%
-            var buildDir = function ( obj, level, base_path ) {
-              for ( key in obj ) {
-
-                if ( obj[key] instanceof Array ) {
-                  for ( file_path in obj[key] ) {
-                    var file_name = path.basename(obj[key][file_path], path.extname(obj[key][file_path]));
-            %>
-                    <li><a href="<%= root_path + base_path + file_name %>.html"><%= obj[key][file_path] %></a></li>
-            <%
-                  }
-                } else {
-            %>
-                    <div class="level<%= level %>"><h3><%= key %></h3><ul>
-            <%
-                  buildDir( obj[key], level++, base_path+key+'/' );
-            %>
-                    </ul></div>
-            <%
-                }
-
-              }
-            };
-            buildDir( paths, 0 , '');
-            %>
+            <%= menu_html %>
 
           </div>
         </div>

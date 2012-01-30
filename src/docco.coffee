@@ -177,10 +177,10 @@ languages =
     name: 'coffee-script', symbol: '#'
   '.js':
     name: 'javascript', symbol: '//'
-  # '.rb':
-  #   name: 'ruby', symbol: '#'
-  # '.py':
-  #   name: 'python', symbol: '#'
+  '.rb':
+    name: 'ruby', symbol: '#'
+  '.py':
+    name: 'python', symbol: '#'
 
 # Build out the appropriate matchers and delimiters for each language.
 for ext, l of languages
